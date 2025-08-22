@@ -113,6 +113,18 @@ APP_ENV_MODE = os.environ.get("APP_ENV_MODE", "development")
 is_load_test_mode = (APP_ENV_MODE == "load_test")
 
 app = Flask(__name__, static_folder="static", static_url_path="/static")
+# Provide common template context globally (CSRF token function and CSP nonce)
+@app.context_processor
+def inject_common_context():
+    try:
+        return {
+            "csrf_token_func": generate_csrf,
+            "csp_nonce": getattr(g, "csp_nonce", None),
+        }
+    except Exception:
+        # Fallback to avoid template crashes if called out of request context
+        return {"csrf_token_func": lambda: "", "csp_nonce": None}
+
 
 # Configure session storage with safe fallback when Redis is unavailable
 app.config["SESSION_PERMANENT"] = False
@@ -1420,7 +1432,6 @@ def reset_password():
 def recover_password_page():
     return render_template(
         "recover_password_page.html",
-        csrf_token_func=generate_csrf,
         csp_nonce=getattr(g, "csp_nonce", None),
     )
 
@@ -2029,7 +2040,6 @@ def index():
         has_seen_tutorial=has_seen_tutorial,
         is_impersonating=session.get("is_impersonating", False),
         original_admin_id=session.get("original_admin_id"),
-        csrf_token_func=generate_csrf,
         csp_nonce=getattr(g, "csp_nonce", None),
     )
 
@@ -2129,7 +2139,6 @@ def admin_login():
 
     return render_template(
         "admin_login.html",
-        csrf_token_func=generate_csrf,
         csp_nonce=getattr(g, "csp_nonce", None),
     )
 
@@ -3020,7 +3029,6 @@ def register():
         total_registered_users=total_registered_users,
         num_active_users=num_active_users,
         top_user=top_user,
-        csrf_token_func=generate_csrf,
         is_testing=app.testing,
         csp_nonce=getattr(g, "csp_nonce", None),
     )
@@ -3140,7 +3148,6 @@ def login():
         total_registered_users=total_registered_users,
         num_active_users=num_active_users,
         top_user=top_user,
-        csrf_token_func=generate_csrf,
         csp_nonce=getattr(g, "csp_nonce", None),
     )
 

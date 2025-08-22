@@ -1,0 +1,2 @@
+To jest przykładowy plik tekstowy do testów E2E.
+Zawiera przykładową treść do przetestowania uploadu plików.

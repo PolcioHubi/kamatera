@@ -14,7 +14,7 @@ set -e
 SERVICE_NAME="mobywatel"
 PROJECT_USER="mobywatel_user"
 DEST_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-DOMAIN="gov-mobywatel.polcio.p5.tiktalik.io"
+DOMAIN="185-139-230-222.cloud-xip.com"
 SSL_EMAIL="polciovps@atomicmail.io"
 GUNICORN_WORKERS=$((2 * $(nproc) + 1))
 
@@ -214,11 +214,11 @@ server {
     client_max_body_size 50M;
     
     location / {
-        proxy_pass http://unix:$DEST_DIR/${SERVICE_NAME}.sock:/;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_pass http://unix:$DEST_DIR/${SERVICE_NAME}.sock;
+        proxy_set_header Host $$host;
+        proxy_set_header X-Real-IP $$remote_addr;
+        proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $$scheme;
         proxy_connect_timeout 60s;
         proxy_send_timeout 60s;
         proxy_read_timeout 60s;

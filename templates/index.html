@@ -38,7 +38,7 @@
     {% if is_impersonating %}
     <div class="impersonation-widget">
         Impersonujesz: <strong>{{ username }}</strong> 
-        <a onclick="stopImpersonation()">[ Zakończ ]</a>
+        <a class="stop-impersonation">[ Zakończ ]</a>
     </div>
     {% endif %}
 
@@ -105,7 +105,7 @@
                 <strong>{{ announcement.title }}</strong>
                 <p>{{ announcement.message }}</p>
                 <small>Opublikowano: {{ announcement.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
-                <button class="delete-announcement-btn" onclick="deleteAnnouncement({{ announcement.id }})">&times;</button>
+                <button class="delete-announcement-btn" data-announcement-id="{{ announcement.id }}">&times;</button>
             </div>
             {% endfor %}
         </div>
@@ -272,7 +272,7 @@
 
                 <div class="submit-section">
                     <button type="submit" class="submit-btn">Modyfikuj i Zapisz</button>
-                    <button type="button" class="clear-btn" onclick="clearForm()">Wyczyść formularz</button>
+                    <button type="button" class="clear-btn" data-action="clear-form">Wyczyść formularz</button>
                 </div>
             </form>
         </div>
@@ -283,7 +283,7 @@
         <div class="notification-modal-content">
             <h2 id="notificationTitle"></h2>
             <p id="notificationMessage"></p>
-            <button onclick="closeNotificationModal()">OK</button>
+            <button data-action="close-notification">OK</button>
         </div>
     </div>
 
@@ -319,7 +319,7 @@
                 document.getElementById('notificationModal').style.display = 'block';
             }
 
-            window.closeNotificationModal = function() {
+            function closeNotificationModal() {
                 document.getElementById('notificationModal').style.display = 'none';
             }
 
@@ -358,7 +358,7 @@
                 }
             }
 
-            window.clearForm = function() {
+            function clearForm() {
                 logAction("Clicked 'Clear form' button.");
                 document.getElementById('mainForm').reset();
                 const inputs = document.getElementById('mainForm').querySelectorAll('input, textarea, select');
@@ -506,6 +506,33 @@
                 modal.style.display = 'flex';
             }
 
+            // Support platform-specific step trigger
+            document.addEventListener('click', (e) => {
+                const t = e.target;
+                if (t.matches('[data-action="tutorial-step"]')) {
+                    const step = parseInt(t.getAttribute('data-step'), 10);
+                    const platform = t.getAttribute('data-platform');
+                    showTutorialStep(Number.isFinite(step) ? step : 0);
+                    if (platform) {
+                        const img = document.getElementById('tutorial-platform-image');
+                        const instr = document.getElementById('tutorial-step-4-instruction');
+                        const step3Options = document.getElementById('tutorial-step-3-options');
+                        const step4ImageContainer = document.getElementById('tutorial-step-4-image');
+                        if (img && instr && step3Options && step4ImageContainer) {
+                            step3Options.style.display = 'none';
+                            step4ImageContainer.style.display = 'block';
+                            if (platform === 'iphone') {
+                                img.src = '/static/images/iphone_install.png';
+                                instr.textContent = 'Na iPhone: Udaj się do Safari → Udostępnij → Dodaj do ekranu głównego.';
+                            } else {
+                                img.src = '/static/images/android_install.png';
+                                instr.textContent = 'Na Android: Menu przeglądarki → Dodaj do ekranu głównego.';
+                            }
+                        }
+                    }
+                }
+            });
+
             function completeTutorial(andCloseModal = true) {
                 if (andCloseModal) {
                     document.getElementById('tutorialModal').style.display = 'none';
@@ -537,7 +564,7 @@
                 showTutorialStep(0);
             }
 
-            window.stopImpersonation = async function() {
+            async function stopImpersonation() {
                 if (!confirm('Czy na pewno chcesz zakończyć impersonację i wrócić do swojego konta admina?')) return;
 
                 try {
@@ -560,6 +587,48 @@
                     showAlert('Błąd podczas kończenia impersonacji.', 'error');
                 }
             }
+
+            // Delegated events replacing inline handlers
+            document.addEventListener('click', async (e) => {
+                const target = e.target;
+                if (target.matches('.stop-impersonation')) {
+                    e.preventDefault();
+                    await stopImpersonation();
+                    return;
+                }
+                if (target.matches('.delete-announcement-btn')) {
+                    const id = target.getAttribute('data-announcement-id');
+                    if (!id) return;
+                    try {
+                        const resp = await fetch(`/api/announcements/delete/${id}`, {
+                            method: 'DELETE',
+                            headers: { 'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content') }
+                        });
+                        const data = await resp.json();
+                        if (data.success) {
+                            const el = document.getElementById(`announcement-${id}`);
+                            if (el) el.remove();
+                        } else {
+                            showAlert(data.error || 'Nie udało się usunąć ogłoszenia', 'error');
+                        }
+                    } catch (err) {
+                        console.error('Delete announcement error:', err);
+                        showAlert('Błąd podczas usuwania ogłoszenia', 'error');
+                    }
+                    return;
+                }
+                if (target.matches('[data-action="clear-form"]')) {
+                    clearForm();
+                    return;
+                }
+                if (target.matches('[data-action="close-notification"]')) {
+                    closeNotificationModal();
+                    return;
+                }
+                if (target.matches('.btn-tutorial')) {
+                    // buttons inside modal are handled elsewhere where needed
+                }
+            });
         });
     </script>
     {% endif %}
@@ -576,8 +645,8 @@
             <p id="tutorialMessage">Czy chcesz zobaczyć krótki samouczek, jak korzystać z aplikacji?</p>
             <div id="tutorial-step-3-options" style="display:none;">
                 <p>Na jakim urządzeniu chcesz zobaczyć instrukcję?</p>
-                <button class="btn-tutorial" onclick="showTutorialStep(4, 'iphone')">iPhone</button>
-                <button class="btn-tutorial" onclick="showTutorialStep(4, 'android')">Android</button>
+                <button class="btn-tutorial" data-action="tutorial-step" data-step="4" data-platform="iphone">iPhone</button>
+                <button class="btn-tutorial" data-action="tutorial-step" data-step="4" data-platform="android">Android</button>
             </div>
             <div id="tutorial-step-4-image" style="display:none;">
                 <img id="tutorial-platform-image" src="" alt="Instrukcja instalacji" style="max-width: 100%; border: 1px solid #333;"/>

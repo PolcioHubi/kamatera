@@ -452,11 +452,11 @@
         <div class="alert alert-error" id="alertError"></div>
 
         <div class="tabs">
-            <button type="button" class="tab active" onclick="showTab('overview', this)">Przegląd</button>
-            <button type="button" class="tab" onclick="showTab('access-keys', this)">Klucze Dostępu</button>
-            <button type="button" class="tab" onclick="showTab('registered-users', this)">Zarejestrowani Użytkownicy</button>
-            <button type="button" class="tab" onclick="showTab('file-users', this)">Użytkownicy Plików</button>
-            <button type="button" class="tab" onclick="showTab('logs', this)">Logi Systemowe</button>
+            <button type="button" class="tab active" data-tab="overview">Przegląd</button>
+            <button type="button" class="tab" data-tab="access-keys">Klucze Dostępu</button>
+            <button type="button" class="tab" data-tab="registered-users">Zarejestrowani Użytkownicy</button>
+            <button type="button" class="tab" data-tab="file-users">Użytkownicy Plików</button>
+            <button type="button" class="tab" data-tab="logs">Logi Systemowe</button>
         </div>
 
         <!-- Przegląd -->
@@ -485,8 +485,8 @@
             </div>
 
             <div class="section">
-                <button class="btn" onclick="refreshData()">🔄 Odśwież dane</button>
-                <button class="btn btn-warning" onclick="exportAllData()">📤 Eksportuj Wszystkie Dane</button>
+                <button class="btn" id="btnRefreshData">🔄 Odśwież dane</button>
+                <button class="btn btn-warning" id="btnExportAll">📤 Eksportuj Wszystkie Dane</button>
             </div>
 
             <div class="section">
@@ -526,7 +526,7 @@
                             <input type="date" id="announcementExpires">
                         </div>
                     </div>
-                    <button class="btn btn-success" onclick="sendAnnouncement()">Wyślij Ogłoszenie</button>
+                    <button class="btn btn-success" id="btnSendAnnouncement">Wyślij Ogłoszenie</button>
                 </div>
             </div>
         </div>
@@ -550,7 +550,7 @@
                         </select>
                     </div>
                 </div>
-                <button class="btn btn-success" onclick="generateAccessKey()">Generuj Klucz</button>
+                <button class="btn btn-success" id="btnGenerateKey">Generuj Klucz</button>
             </div>
 
             <div class="section">
@@ -608,7 +608,7 @@
         <div id="file-users" class="tab-content">
             <div class="section">
                 <h2>Zarządzanie użytkownikami plików</h2>
-                <input type="text" class="search-box" placeholder="Szukaj użytkowników..." id="userSearch" onkeyup="filterUsers()">
+                <input type="text" class="search-box" placeholder="Szukaj użytkowników..." id="userSearch">
                 <div class="table-container">
                     <table class="table">
                         <thead>
@@ -635,8 +635,8 @@
                 <h2>Podgląd Logów Systemowych</h2>
                 <p>Wyświetlane jest ostatnie 100 linii z wybranego pliku logów.</p>
                 <div style="margin-bottom: 20px;">
-                    <button class="btn" onclick="fetchLogs('app.log')">Pokaż app.log</button>
-                    <button class="btn" onclick="fetchLogs('user_activity.log')">Pokaż user_activity.log</button>
+                    <button class="btn" id="btnShowAppLog">Pokaż app.log</button>
+                    <button class="btn" id="btnShowActivityLog">Pokaż user_activity.log</button>
                 </div>
                 <h3 id="logFileName"></h3>
                 <div id="logViewer" class="log-viewer">Wybierz plik logów, aby wyświetlić jego zawartość.</div>
@@ -647,28 +647,28 @@
     <!-- Modal dla wygenerowanego klucza -->
     <div id="keyModal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="closeKeyModal()">&times;</span>
+            <span class="close" id="closeKeyModal">&times;</span>
             <h2>Nowy Klucz Dostępu</h2>
             <p>Klucz został wygenerowany. Skopiuj go i zapisz w bezpiecznym miejscu:</p>
             <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; word-break: break-all; font-family: monospace;">
                 <span id="generatedKey"></span>
             </div>
             <br>
-            <button class="btn" onclick="copyToClipboard()">Skopiuj do schowka</button>
-            <button class="btn btn-success" onclick="closeKeyModal()">Zamknij</button>
+            <button class="btn" id="btnCopyKey">Skopiuj do schowka</button>
+            <button class="btn btn-success" id="btnCloseKeyModal">Zamknij</button>
         </div>
     </div>
 
     <!-- Modal dla logów użytkownika -->
     <div id="logsModal" class="modal">
         <div class="modal-content" style="max-width: 900px;">
-            <span class="close" onclick="closeLogsModal()">&times;</span>
+            <span class="close" id="closeLogsModal">&times;</span>
             <h2 id="logsModalTitle"></h2>
             <div id="logsModalBody" style="max-height: 60vh; overflow-y: auto;"></div>
         </div>
     </div>
 
-    <script>
+    <script nonce="{{ csp_nonce }}">
         // Globalne dane
         let currentData = {
             stats: {},
@@ -706,6 +706,68 @@
                 refreshData();
             }
         }
+
+        // Replace inline handlers with delegated listeners
+        document.addEventListener('click', (e) => {
+            const t = e.target;
+            if (t.matches('.tab[data-tab]')) {
+                showTab(t.getAttribute('data-tab'), t);
+            } else if (t.matches('.toggle-key-visibility')) {
+                toggleKeyVisibility(t);
+            } else if (t.matches('.toggle-password-visibility')) {
+                togglePasswordVisibility(t);
+            } else if (t.matches('#btnRefreshData')) {
+                refreshData();
+            } else if (t.matches('#btnExportAll')) {
+                exportAllData();
+            } else if (t.matches('#btnSendAnnouncement')) {
+                sendAnnouncement();
+            } else if (t.matches('#btnGenerateKey')) {
+                generateAccessKey();
+            } else if (t.matches('#btnShowAppLog')) {
+                fetchLogs('app.log');
+            } else if (t.matches('#btnShowActivityLog')) {
+                fetchLogs('user_activity.log');
+            } else if (t.matches('#closeKeyModal')) {
+                closeKeyModal();
+            } else if (t.matches('#btnCopyKey')) {
+                copyToClipboard();
+            } else if (t.matches('#btnCloseKeyModal')) {
+                closeKeyModal();
+            } else if (t.matches('#closeLogsModal')) {
+                closeLogsModal();
+            } else if (t.matches('[data-action="deactivate-key"]')) {
+                deactivateKey(t.getAttribute('data-key'));
+            } else if (t.matches('[data-action="delete-key"]')) {
+                deleteKey(t.getAttribute('data-key'));
+            } else if (t.matches('[data-action="toggle-user"]')) {
+                toggleUserStatus(t.getAttribute('data-username'));
+            } else if (t.matches('[data-action="delete-registered-user"]')) {
+                const u = t.getAttribute('data-username');
+                const del = (t.getAttribute('data-delete-files') === 'true');
+                deleteRegisteredUser(u, del);
+            } else if (t.matches('[data-action="impersonate"]')) {
+                impersonateUser(t.getAttribute('data-username'));
+            } else if (t.matches('[data-action="reset-password"]')) {
+                resetPasswordPrompt(t.getAttribute('data-username'));
+            } else if (t.matches('[data-action="coins-inc"]')) {
+                updateHubertCoins(t.getAttribute('data-username'), 1);
+            } else if (t.matches('[data-action="coins-dec"]')) {
+                updateHubertCoins(t.getAttribute('data-username'), -1);
+            } else if (t.matches('[data-action="view-logs"]')) {
+                viewUserLogs(t.getAttribute('data-username'));
+            } else if (t.matches('[data-action="download-user"]')) {
+                downloadUserData(t.getAttribute('data-username'));
+            }
+        });
+
+        // keyup handler for search
+        document.addEventListener('keyup', (e) => {
+            const t = e.target;
+            if (t.matches('#userSearch')) {
+                filterUsers();
+            }
+        });
 
         // Funkcje alertów
         function showAlert(message, type = 'success') {
@@ -810,7 +872,7 @@
             tbody.innerHTML = currentData.accessKeys.map(key => `
                 <tr>
                     <td style="font-family: monospace; font-size: 12px; word-break: break-all; max-width: 200px;">
-                        <div style="cursor: pointer;" onclick="toggleKeyVisibility(this)" title="Kliknij aby pokazać/ukryć pełny klucz">
+                        <div style="cursor: pointer;" class="toggle-key-visibility" title="Kliknij aby pokazać/ukryć pełny klucz">
                             <span class="key-short">${key.key.substring(0, 20)}...</span>
                             <span class="key-full" style="display: none;">${key.key}</span>
                         </div>
@@ -827,10 +889,10 @@
                     </td>
                     <td>
                         ${key.is_active ?
-                            `<button class="btn btn-warning" onclick="deactivateKey('${key.key}')">Dezaktywuj</button>` :
+                            `<button class="btn btn-warning" data-action="deactivate-key" data-key="${key.key}">Dezaktywuj</button>` :
                             '<span style="color: #999;">Dezaktywowany</span>'
                         }
-                        <button class="btn btn-danger" onclick="deleteKey('${key.key}')">Usuń</button>
+                        <button class="btn btn-danger" data-action="delete-key" data-key="${key.key}">Usuń</button>
                     </td>
                 </tr>
             `).join('');
@@ -851,7 +913,7 @@
                     <td>${user.last_login ? new Date(user.last_login).toLocaleString() : 'Nigdy'}</td>
                     <td style="font-family: monospace; font-size: 12px;">${user.access_key_used ? user.access_key_used.substring(0, 20) + '...' : 'Brak'}</td>
                     <td style="font-family: monospace; font-size: 11px; max-width: 150px;">
-                        <div style="cursor: pointer;" onclick="togglePasswordVisibility(this)" title="Kliknij aby pokazać/ukryć hash hasła">
+                        <div style="cursor: pointer;" class="toggle-password-visibility" title="Kliknij aby pokazać/ukryć hash hasła">
                             <span class="password-short">${user.password ? user.password.substring(0, 16) + '...' : 'Brak'}</span>
                             <span class="password-full" style="display: none; word-break: break-all;">${user.password || 'Brak'}</span>
                         </div>
@@ -862,19 +924,19 @@
                         </span>
                     </td>
                     <td>
-                        <button class="btn" onclick="toggleUserStatus('${user.username}')">${user.is_active ? 'Dezaktywuj' : 'Aktywuj'}</button>
-                        <button class="btn btn-danger" onclick="deleteRegisteredUser('${user.username}', true)">Usuń z Plikami</button>
-                        <button class="btn btn-warning" onclick="deleteRegisteredUser('${user.username}', false)">Usuń (Zachowaj Pliki)</button>
-                        <button class="btn" onclick="impersonateUser('${user.username}')">Impersonuj</button>
+                        <button class="btn" data-action="toggle-user" data-username="${user.username}">${user.is_active ? 'Dezaktywuj' : 'Aktywuj'}</button>
+                        <button class="btn btn-danger" data-action="delete-registered-user" data-username="${user.username}" data-delete-files="true">Usuń z Plikami</button>
+                        <button class="btn btn-warning" data-action="delete-registered-user" data-username="${user.username}" data-delete-files="false">Usuń (Zachowaj Pliki)</button>
+                        <button class="btn" data-action="impersonate" data-username="${user.username}">Impersonuj</button>
                     </td>
                     <td>
-                        <button class="btn btn-warning" onclick="resetPasswordPrompt('${user.username}')">Resetuj Hasło</button>
+                        <button class="btn btn-warning" data-action="reset-password" data-username="${user.username}">Resetuj Hasło</button>
                     </td>
                     <td>
                         <div style="display: flex; align-items: center;">
-                            <button class="btn btn-success" onclick="updateHubertCoins('${user.username}', 1)">+</button>
+                            <button class="btn btn-success" data-action="coins-inc" data-username="${user.username}">+</button>
                             <span id="coins-${user.username}" style="margin: 0 10px;">${user.hubert_coins || 0}</span>
-                            <button class="btn btn-warning" onclick="updateHubertCoins('${user.username}', -1)">-</button>
+                            <button class="btn btn-warning" data-action="coins-dec" data-username="${user.username}">-</button>
                         </div>
                     </td>
                 </tr>
@@ -897,8 +959,8 @@
                     <td>${user.file_count}</td>
                     <td>${formatBytes(user.total_size)}</td>
                     <td>
-                        <button class="btn" onclick="viewUserLogs('${user.name}')">Logi</button>
-                        <button class="btn" onclick="downloadUserData('${user.name}')">Pobierz</button>
+                        <button class="btn" data-action="view-logs" data-username="${user.name}">Logi</button>
+                        <button class="btn" data-action="download-user" data-username="${user.name}">Pobierz</button>
                     </td>
                 </tr>
             `).join('');

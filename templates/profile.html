@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token_func() }}">
     <title>Profil Użytkownika - {{ username }}</title>
     <style>
         body {
@@ -159,8 +160,8 @@
             <p id="tutorialMessage"></p>
             <div id="tutorial-step-3-options" style="display:none;">
                 <p>Na jakim urządzeniu chcesz zobaczyć instrukcję?</p>
-                <button class="btn-tutorial" onclick="showTutorialStep(4, 'iphone')">iPhone</button>
-                <button class="btn-tutorial" onclick="showTutorialStep(4, 'android')">Android</button>
+                <button class="btn-tutorial" id="btnTutorialIphone">iPhone</button>
+                <button class="btn-tutorial" id="btnTutorialAndroid">Android</button>
             </div>
             <div id="tutorial-step-4-image" style="display:none;">
                 <img id="tutorial-platform-image" src="" alt="Instrukcja instalacji" style="max-width: 100%; border: 1px solid #333;"/>
@@ -178,13 +179,17 @@
     </div>
 
     <link rel="stylesheet" href="/static/css/profile.css?v=20250808">
-    <script>
+    <script nonce="{{ csp_nonce }}">
         // Ten sam kod co w index.html, ale z logiką startującą od etapu 3
         document.addEventListener('DOMContentLoaded', function() {
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('tutorial') === 'true') {
                 showTutorialStep(3);
             }
+            const btnI = document.getElementById('btnTutorialIphone');
+            if (btnI) btnI.addEventListener('click', () => showTutorialStep(4, 'iphone'));
+            const btnA = document.getElementById('btnTutorialAndroid');
+            if (btnA) btnA.addEventListener('click', () => showTutorialStep(4, 'android'));
         });
 
         let currentStep = 0;
@@ -264,13 +269,13 @@
         function completeTutorial() {
             const modal = document.getElementById('tutorialModal');
             modal.style.display = 'none';
-            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            const meta = document.querySelector('meta[name="csrf-token"]');
+            const headers = meta
+                ? { 'Content-Type': 'application/json', 'X-CSRFToken': meta.getAttribute('content') }
+                : { 'Content-Type': 'application/json' };
             fetch('/api/complete-tutorial', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrfToken
-                }
+                headers
             }).catch(err => console.error("Błąd podczas kończenia samouczka:", err));
         }
     </script>

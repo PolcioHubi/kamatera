@@ -33,14 +33,16 @@
         </div>
 
         <div class="button-group">
-            <button onclick="goBack()" class="action-button">Powrót</button>
+            <button id="btnGoBack" class="action-button">Powrót</button>
         </div>
     </div>
 
-    <script>
-        function goBack() {
-            window.history.back();
-        }
+    <script nonce="{{ csp_nonce }}">
+        document.addEventListener('click', function(e) {
+            if (e.target && e.target.matches('#btnGoBack')) {
+                window.history.back();
+            }
+        });
     </script>
 </body>
 </html>

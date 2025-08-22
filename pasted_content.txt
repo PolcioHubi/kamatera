@@ -75,17 +75,7 @@
         }
     </style>
 <link href="/static/manifest.json" rel="manifest"/>
-<script>
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/static/sw.js?v=20250808').then(registration => {
-                console.log('ServiceWorker registration successful with scope: ', registration.scope);
-            }, err => {
-                console.log('ServiceWorker registration failed: ', err);
-            });
-        });
-    }
-</script>
+<script src="/static/js/pasted_sw.js?v=20250808" defer crossorigin="anonymous"></script>
 <noscript data-n-css=""></noscript>
 <style>
         body {
@@ -419,13 +409,13 @@
 <p>Dokument ważny</p>
 </section>
 <div id="new-shortcuts">
-<div class="shortcut" onclick="window.location.href='/static/qr.html'">
+<div class="shortcut" data-href="/static/qr.html">
 <div class="circle-wrapper">
 <img alt="Shortcut" src="/static/checkbo.png?v=20250808"/>
 </div>
 <p>Potwierdź swoje dane</p>
 </div>
-<div class="shortcut" onclick="wybordokumentumenu()">
+<div class="shortcut" data-action="wybordokumentumenu">
 <div class="circle-wrapper">
 <img alt="Shortcut" src="/static/card.png?v=20250808"/>
 </div>
@@ -536,14 +526,14 @@
 <div class="wybierzitem" id="wi1">
 <p class="dowo">Dowód osobisty</p>
 <p class="info">Zobaczysz tutaj dane swojego dowodu osobistego. Ale jeśli chcesz potwierdzić tożsamość, potrzebujesz fizycznego dokumentu.</p>
-<button onclick="danedowodowe()">Pokaż dane</button>
+<button data-action="danedowodowe">Pokaż dane</button>
 </div>
 <div class="wybierzitem" id="wi2">
 <p class="dowo">mDowód</p>
 <p class="info">Nie używaj danych mDowodu w banku (do 31 sierpnia), gdy wyjeżdżasz za granicę lub składasz wniosek o dowód osobisty.</p>
-<button onclick="danemdowodowe()">Pokaż dane</button>
+<button data-action="danemdowodowe">Pokaż dane</button>
 </div>
-<button class="zamknijprzycisk" data-cf-modified-97e36e49c6bdad17a46a8afa-="" data-cf-modified-c9d9558af8acd698ffa398a8-="" onclick="wybordokumentumenu()">Zamknij</button>
+<button class="zamknijprzycisk" data-action="wybordokumentumenu" data-cf-modified-97e36e49c6bdad17a46a8afa-="" data-cf-modified-c9d9558af8acd698ffa398a8-="">Zamknij</button>
 </section>
 </section>
 <section id="danedowodu" style="">
@@ -574,8 +564,8 @@
 </section>
 </section>
 <section id="bottooom">
-<button class="zamknijprzycisk" onclick="zamknij2()">Zamknij</button>
-<button class="wrocprzycisk" onclick="wroc()">Wróć</button>
+<button class="zamknijprzycisk" data-action="zamknij2">Zamknij</button>
+<button class="wrocprzycisk" data-action="wroc">Wróć</button>
 </section>
 </section>
 </section>
@@ -620,71 +610,7 @@
 </section>
 <script data-cfasync="false" src="/static/wybor.js?v=20250808"></script>
 <script data-cfasync="false" src="/static/scale.js?v=20250808"></script>
-<script data-cfasync="false">
-        document.getElementById("aktualizuj").addEventListener("click", function () {
-            window.location.href = "/static/dashboard.html";
-        });
-        const infoSection = document.getElementById('info-section');
-        const blueSection = document.getElementById('blue-section');
-        const leftIcon = document.getElementById('left-icon');
-        const rightIcon = document.getElementById('right-icon');
-        const leftIconBlue = document.getElementById('left-icon-blue');
-        const rightIconBlue = document.getElementById('right-icon-blue');
-        const closeIcon = document.getElementById('close-icon');
+<script src="/static/js/pasted_interactions.js?v=20250808" defer crossorigin="anonymous"></script>
 
-        let startX;
-
-        infoSection.addEventListener('touchstart', (e) => {
-            startX = e.touches[0].clientX;
-        });
-
-        infoSection.addEventListener('touchend', (e) => {
-            const endX = e.changedTouches[0].clientX;
-            if (startX > endX + 50) { // Swipe left
-                infoSection.style.display = 'none';
-                blueSection.style.display = 'block';
-            }
-        });
-
-        blueSection.addEventListener('touchstart', (e) => {
-            startX = e.touches[0].clientX;
-        });
-
-        blueSection.addEventListener('touchend', (e) => {
-            const endX = e.changedTouches[0].clientX;
-            if (startX < endX - 50) { // Swipe right
-                blueSection.style.display = 'none';
-                infoSection.style.display = 'block';
-            }
-        });
-
-        rightIcon.addEventListener('click', () => {
-            infoSection.style.display = 'none';
-            blueSection.style.display = 'block';
-        });
-
-        leftIconBlue.addEventListener('click', () => {
-            blueSection.style.display = 'none';
-            infoSection.style.display = 'block';
-        });
-
-        closeIcon.addEventListener('click', () => {
-            blueSection.style.display = 'none';
-        });
-    </script>
-<script>(function () { function c() { var b = a.contentDocument || a.contentWindow.document; if (b) { var d = b.createElement('script'); d.innerHTML = "window.__CF$cv$params={r:'95a2b63469f4ecbf',t:'MTc1MTY3NDk4NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);"; b.getElementsByTagName('head')[0].appendChild(d) } } if (document.body) { var a = document.createElement('iframe'); a.height = 1; a.width = 1; a.style.position = 'absolute'; a.style.top = 0; a.style.left = 0; a.style.border = 'none'; a.style.visibility = 'hidden'; document.body.appendChild(a); if ('loading' !== document.readyState) c(); else if (window.addEventListener) document.addEventListener('DOMContentLoaded', c); else { var e = document.onreadystatechange || function () { }; document.onreadystatechange = function (b) { e(b); 'loading' !== document.readyState && (document.onreadystatechange = e, c()) } } } })();</script>
-<script>
-  // JavaScript to disable context menu and copy shortcuts
-  document.addEventListener('contextmenu', event => event.preventDefault());
-  document.addEventListener('keydown', event => {
-    // Disable Ctrl+C, Ctrl+U, Ctrl+S
-    if (event.ctrlKey && ['c', 'u', 's'].includes(event.key.toLowerCase())) {
-      event.preventDefault();
-    }
-    // Disable F12
-    if (event.key === 'F12') {
-      event.preventDefault();
-    }
-  });
-</script>
+<script src="/static/js/disable_shortcuts.js?v=20250808" defer crossorigin="anonymous"></script>
 </body>

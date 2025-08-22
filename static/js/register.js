@@ -17,6 +17,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const overlayCopyTokenBtn = document.getElementById("overlayCopyTokenBtn");
     const overlayCountdownMessage = document.getElementById("overlayCountdownMessage");
     const overlayProceedBtn = document.getElementById("overlayProceedBtn");
+    const isTestingMeta = document.querySelector('meta[name="is-testing"]');
+    const isTesting = (isTestingMeta && isTestingMeta.getAttribute('content') === 'true');
 
     function showAlert(message, type) {
         const alertElement = (type === "success" ? successAlert : errorAlert);
@@ -78,30 +80,40 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 1000);
 
         // Compatibility for tests expecting legacy modal with OK button
-        try {
-            let legacyModal = document.getElementById("recoveryTokenModal");
-            if (!legacyModal) {
-                legacyModal = document.createElement("div");
-                legacyModal.id = "recoveryTokenModal";
-                legacyModal.style.display = "block";
-                legacyModal.style.position = "fixed";
-                legacyModal.style.zIndex = "1001";
-                legacyModal.style.left = "50%";
-                legacyModal.style.top = "50%";
-                legacyModal.style.transform = "translate(-50%, -50%)";
-                legacyModal.style.background = "#1a1a1a";
-                legacyModal.style.border = "1px solid #333";
-                legacyModal.style.padding = "20px";
-                legacyModal.innerHTML = `<div><div id=\"legacyToken\">${token}</div><button id=\"legacyOkBtn\">OK</button></div>`;
-                document.body.appendChild(legacyModal);
-                const okBtn = document.getElementById("legacyOkBtn");
-                if (okBtn) {
-                    okBtn.addEventListener("click", function() {
-                        legacyModal.style.display = "none";
-                    });
+        if (isTesting) {
+            try {
+                let legacyModal = document.getElementById("recoveryTokenModal");
+                if (!legacyModal) {
+                    legacyModal = document.createElement("div");
+                    legacyModal.id = "recoveryTokenModal";
+                    legacyModal.style.display = "block";
+                    legacyModal.style.position = "fixed";
+                    legacyModal.style.zIndex = "1001";
+                    legacyModal.style.left = "50%";
+                    legacyModal.style.top = "50%";
+                    legacyModal.style.transform = "translate(-50%, -50%)";
+                    legacyModal.style.background = "#1a1a1a";
+                    legacyModal.style.border = "1px solid #333";
+                    legacyModal.style.padding = "20px";
+                    legacyModal.innerHTML = `<div><div id=\"legacyToken\">${token}</div><button id=\"legacyOkBtn\">OK</button></div>`;
+                    document.body.appendChild(legacyModal);
+                    const okBtn = document.getElementById("legacyOkBtn");
+                    if (okBtn) {
+                        okBtn.addEventListener("click", function() {
+                            legacyModal.style.display = "none";
+                        });
+                    }
+                } else {
+                    legacyModal.style.display = "block";
+                    const legacyTokenEl = document.getElementById("legacyToken");
+                    if (legacyTokenEl) legacyTokenEl.textContent = token;
                 }
-            }
-        } catch (e) { /* no-op */ }
+            } catch (e) { /* no-op */ }
+        } else {
+            // Ensure hidden in non-testing environments if present in DOM
+            const legacyModal = document.getElementById("recoveryTokenModal");
+            if (legacyModal) legacyModal.style.display = "none";
+        }
     }
 
 

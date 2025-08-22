@@ -130,11 +130,14 @@ def inject_common_context():
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_USE_SIGNER"] = True
 session_type_env = os.environ.get("SESSION_TYPE")
+redis_url = os.environ.get("REDIS_URL", "redis://127.0.0.1:6379")
 if session_type_env:
     app.config["SESSION_TYPE"] = session_type_env
+    if session_type_env == "redis" and redis is not None:
+        app.config["SESSION_REDIS"] = redis.from_url(redis_url)
 elif redis is not None:
     app.config["SESSION_TYPE"] = "redis"
-    app.config["SESSION_REDIS"] = redis.from_url("redis://127.0.0.1:6379")
+    app.config["SESSION_REDIS"] = redis.from_url(redis_url)
 else:
     app.config["SESSION_TYPE"] = "filesystem"
 
